@@ -1,0 +1,16 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "commonjs",
+    "moduleResolution": "node",
+    "strict": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "noEmit": true,
+    "resolveJsonModule": true,
+    "baseUrl": ".",
+    "paths": {}
+  },
+  "include": ["fixtures/ts-shop/**/*.ts", "fixtures/ts-shop/**/*.tsx"],
+  "exclude": ["node_modules", "dist"]
+}
