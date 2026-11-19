@@ -1,0 +1,421 @@
+{
+  "schema_version": "1",
+  "fixtures": [
+    {
+      "fixture": "py-shop",
+      "expected": [
+        {
+          "planted": 1,
+          "file": "app/pay.py",
+          "function": "charge_customer",
+          "entity_type": "http_api",
+          "name": "stripe",
+          "mode": "timeout",
+          "status": "unhandled_in_code",
+          "description": "Stripe charge with no timeout"
+        },
+        {
+          "planted": 2,
+          "file": "app/pay.py",
+          "function": "charge_customer",
+          "entity_type": "http_api",
+          "name": "stripe",
+          "mode": "partial_success",
+          "status": "unhandled_in_code",
+          "description": "Charge then order insert with no idempotency key or compensation"
+        },
+        {
+          "planted": 3,
+          "file": "app/jobs.py",
+          "function": "sync_inventory",
+          "entity_type": "database",
+          "name": "postgres",
+          "mode": "multi_write_without_transaction",
+          "status": "unhandled_in_code",
+          "description": "except: pass around inventory update — silent handler"
+        },
+        {
+          "planted": 4,
+          "file": "app/refund.py",
+          "function": "process_refund",
+          "entity_type": "database",
+          "name": "postgres",
+          "mode": "multi_write_without_transaction",
+          "status": "unhandled_in_code",
+          "description": "Two DB writes in refund flow without a transaction"
+        },
+        {
+          "planted": 5,
+          "file": "app/products.py",
+          "function": "list_products",
+          "entity_type": "cache",
+          "name": "redis",
+          "mode": "unavailable",
+          "status": "unhandled_in_code",
+          "description": "Redis get with no try — Redis down crashes the product list"
+        },
+        {
+          "planted": 6,
+          "file": "app/products.py",
+          "function": "get_cart_total",
+          "entity_type": "cache",
+          "name": "redis",
+          "mode": "cache_as_source_of_truth",
+          "status": "unknown",
+          "description": "Cache used as the only store for cart totals"
+        },
+        {
+          "planted": 7,
+          "file": "app/jobs.py",
+          "function": "process_order_from_queue",
+          "entity_type": "queue",
+          "name": "celery",
+          "mode": "duplicate_delivery",
+          "status": "unhandled_in_code",
+          "description": "Queue consumer with no dedup on order id"
+        },
+        {
+          "planted": 8,
+          "file": "app/upload.py",
+          "function": "upload_avatar",
+          "entity_type": "storage",
+          "name": "s3",
+          "mode": "size_limit",
+          "status": "unhandled_in_code",
+          "description": "S3 upload with no size check, DB row written first"
+        },
+        {
+          "planted": "8b",
+          "file": "app/upload.py",
+          "function": "upload_avatar",
+          "entity_type": "storage",
+          "name": "s3",
+          "mode": "orphaned_object",
+          "status": "unhandled_in_code",
+          "description": "DB row written before S3 upload — orphaned record if upload fails"
+        },
+        {
+          "planted": 9,
+          "file": "app/pay.py",
+          "function": "charge_customer",
+          "entity_type": "config",
+          "name": "STRIPE_KEY",
+          "mode": "missing_variable",
+          "status": "unhandled_in_code",
+          "description": "os.environ[\"STRIPE_KEY\"] read inside request handler with no default"
+        },
+        {
+          "planted": 10,
+          "file": "app/routes.py",
+          "function": "refund",
+          "entity_type": "auth",
+          "name": "auth",
+          "mode": "missing_authorization_check",
+          "status": "unknown",
+          "description": "Refund route with no auth dependency"
+        },
+        {
+          "planted": 11,
+          "file": "app/routes.py",
+          "function": "checkout",
+          "entity_type": "user_input",
+          "name": "user_input",
+          "mode": "missing_validation",
+          "status": "unknown",
+          "description": "Checkout body parsed with no schema validation"
+        },
+        {
+          "planted": 12,
+          "file": "app/email_service.py",
+          "function": "send_order_confirmation",
+          "entity_type": "http_api",
+          "name": "sendgrid",
+          "mode": "server_error",
+          "status": "partial",
+          "description": "SendGrid email call catches errors, logs nothing, returns success",
+          "detectability": 5
+        }
+      ],
+      "silent_handlers": [
+        {
+          "file": "app/jobs.py",
+          "function": "sync_inventory",
+          "kind": "except_pass",
+          "description": "Bare except with pass — inventory failure is completely silent"
+        },
+        {
+          "file": "app/email_service.py",
+          "function": "send_order_confirmation",
+          "kind": "except_pass",
+          "description": "Exception caught and silently swallowed"
+        }
+      ],
+      "controls": [
+        {
+          "file": "app/shipping.py",
+          "function": "get_rates",
+          "entity_type": "http_api",
+          "mode": "timeout",
+          "status": "handled",
+          "description": "HTTP call with timeout, retry decorator, and logged except"
+        },
+        {
+          "file": "app/shipping.py",
+          "function": "get_rates",
+          "entity_type": "http_api",
+          "mode": "server_error",
+          "status": "handled",
+          "description": "HTTP call with retry and logged except"
+        },
+        {
+          "file": "app/shipping.py",
+          "function": "get_rates",
+          "entity_type": "http_api",
+          "mode": "rate_limited",
+          "status": "handled",
+          "description": "HTTP call with retry"
+        },
+        {
+          "file": "app/inventory.py",
+          "function": "transfer_stock",
+          "entity_type": "database",
+          "mode": "multi_write_without_transaction",
+          "status": "handled",
+          "description": "DB transaction block around two writes"
+        },
+        {
+          "file": "app/settings.py",
+          "function": null,
+          "entity_type": "config",
+          "mode": "missing_variable",
+          "status": "handled",
+          "description": "Config reads with default values"
+        },
+        {
+          "file": "app/routes.py",
+          "function": "update_product",
+          "entity_type": "auth",
+          "mode": "missing_authorization_check",
+          "status": "handled",
+          "description": "Route with auth dependency"
+        },
+        {
+          "file": "app/routes.py",
+          "function": "update_product",
+          "entity_type": "user_input",
+          "mode": "missing_validation",
+          "status": "handled",
+          "description": "Route with Pydantic body validation"
+        }
+      ]
+    },
+    {
+      "fixture": "ts-shop",
+      "expected": [
+        {
+          "planted": 1,
+          "file": "src/services/payment.ts",
+          "function": "chargeCustomer",
+          "entity_type": "http_api",
+          "name": "stripe",
+          "mode": "timeout",
+          "status": "unhandled_in_code",
+          "description": "Stripe charge with no timeout"
+        },
+        {
+          "planted": 2,
+          "file": "src/services/payment.ts",
+          "function": "chargeCustomer",
+          "entity_type": "http_api",
+          "name": "stripe",
+          "mode": "partial_success",
+          "status": "unhandled_in_code",
+          "description": "Charge then order insert with no idempotency key or compensation"
+        },
+        {
+          "planted": 3,
+          "file": "src/services/jobs.ts",
+          "function": "syncInventory",
+          "entity_type": "database",
+          "name": "prisma",
+          "mode": "multi_write_without_transaction",
+          "status": "unhandled_in_code",
+          "description": "Empty catch around inventory update — silent handler"
+        },
+        {
+          "planted": 4,
+          "file": "src/services/refund.ts",
+          "function": "processRefund",
+          "entity_type": "database",
+          "name": "prisma",
+          "mode": "multi_write_without_transaction",
+          "status": "unhandled_in_code",
+          "description": "Two DB writes in refund flow without a transaction"
+        },
+        {
+          "planted": 5,
+          "file": "src/services/products.ts",
+          "function": "listProducts",
+          "entity_type": "cache",
+          "name": "redis",
+          "mode": "unavailable",
+          "status": "unhandled_in_code",
+          "description": "Redis get with no try — Redis down crashes the product list"
+        },
+        {
+          "planted": 6,
+          "file": "src/services/products.ts",
+          "function": "getCartTotal",
+          "entity_type": "cache",
+          "name": "redis",
+          "mode": "cache_as_source_of_truth",
+          "status": "unknown",
+          "description": "Cache used as the only store for cart totals"
+        },
+        {
+          "planted": 7,
+          "file": "src/services/jobs.ts",
+          "function": "orderWorker",
+          "entity_type": "queue",
+          "name": "bullmq",
+          "mode": "duplicate_delivery",
+          "status": "unhandled_in_code",
+          "description": "Queue consumer with no dedup on order id"
+        },
+        {
+          "planted": 8,
+          "file": "src/services/upload.ts",
+          "function": "uploadAvatar",
+          "entity_type": "storage",
+          "name": "s3",
+          "mode": "size_limit",
+          "status": "unhandled_in_code",
+          "description": "S3 upload with no size check, DB row written first"
+        },
+        {
+          "planted": "8b",
+          "file": "src/services/upload.ts",
+          "function": "uploadAvatar",
+          "entity_type": "storage",
+          "name": "s3",
+          "mode": "orphaned_object",
+          "status": "unhandled_in_code",
+          "description": "DB row written before S3 upload — orphaned record if upload fails"
+        },
+        {
+          "planted": 9,
+          "file": "src/services/payment.ts",
+          "function": "chargeCustomer",
+          "entity_type": "config",
+          "name": "STRIPE_KEY",
+          "mode": "missing_variable",
+          "status": "unhandled_in_code",
+          "description": "process.env.STRIPE_KEY read inside request handler with no default"
+        },
+        {
+          "planted": 10,
+          "file": "src/routes/refund.ts",
+          "function": "post /refund",
+          "entity_type": "auth",
+          "name": "auth",
+          "mode": "missing_authorization_check",
+          "status": "unknown",
+          "description": "Refund route with no auth middleware"
+        },
+        {
+          "planted": 11,
+          "file": "src/routes/checkout.ts",
+          "function": "post /checkout",
+          "entity_type": "user_input",
+          "name": "user_input",
+          "mode": "missing_validation",
+          "status": "unknown",
+          "description": "Checkout body parsed with no schema validation"
+        },
+        {
+          "planted": 12,
+          "file": "src/services/email.ts",
+          "function": "sendOrderConfirmation",
+          "entity_type": "http_api",
+          "name": "sendgrid",
+          "mode": "server_error",
+          "status": "partial",
+          "description": "SendGrid email call catches errors, logs nothing, returns success",
+          "detectability": 5
+        }
+      ],
+      "silent_handlers": [
+        {
+          "file": "src/services/jobs.ts",
+          "function": "syncInventory",
+          "kind": "empty_catch",
+          "description": "Empty catch block — inventory failure is completely silent"
+        },
+        {
+          "file": "src/services/email.ts",
+          "function": "sendOrderConfirmation",
+          "kind": "empty_catch",
+          "description": "Exception caught and silently swallowed"
+        }
+      ],
+      "controls": [
+        {
+          "file": "src/services/shipping.ts",
+          "function": "getRates",
+          "entity_type": "http_api",
+          "mode": "timeout",
+          "status": "handled",
+          "description": "HTTP call with timeout, p-retry, and logged catch"
+        },
+        {
+          "file": "src/services/shipping.ts",
+          "function": "getRates",
+          "entity_type": "http_api",
+          "mode": "server_error",
+          "status": "handled",
+          "description": "HTTP call with retry and logged catch"
+        },
+        {
+          "file": "src/services/shipping.ts",
+          "function": "getRates",
+          "entity_type": "http_api",
+          "mode": "rate_limited",
+          "status": "handled",
+          "description": "HTTP call with retry"
+        },
+        {
+          "file": "src/services/inventory.ts",
+          "function": "transferStock",
+          "entity_type": "database",
+          "mode": "multi_write_without_transaction",
+          "status": "handled",
+          "description": "Prisma $transaction around two writes"
+        },
+        {
+          "file": "src/config.ts",
+          "function": null,
+          "entity_type": "config",
+          "mode": "missing_variable",
+          "status": "handled",
+          "description": "Config reads with || defaults"
+        },
+        {
+          "file": "src/routes/admin.ts",
+          "function": "put /admin/products/:id",
+          "entity_type": "auth",
+          "mode": "missing_authorization_check",
+          "status": "handled",
+          "description": "Route with requireAuth middleware"
+        },
+        {
+          "file": "src/routes/admin.ts",
+          "function": "put /admin/products/:id",
+          "entity_type": "user_input",
+          "mode": "missing_validation",
+          "status": "handled",
+          "description": "Route with Zod schema validation"
+        }
+      ]
+    }
+  ]
+}
